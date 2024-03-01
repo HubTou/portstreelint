@@ -1,0 +1,229 @@
+.Dd March 1, 2024
+.Dt portstreelint 8
+.Os
+.Sh NAME
+.Nm portstreelint
+.Nd FreeBSD ports tree lint
+.Sh SYNOPSIS
+.Nm
+.Op Fl \\-show\-cat|\-C
+.Op Fl \\-show\-mnt|\-M
+.Op Fl \\-cat|\-c Ar LIST
+.Op Fl \\-mnt|\-m Ar LIST
+.Op Fl \\-port|\-p Ar LIST
+.Op Fl \\-plist Ar NUM
+.Op Fl \\-broken Ar NUM
+.Op Fl \\-deprecated Ar NUM
+.Op Fl \\-forbidden Ar NUM
+.Op Fl \\-unchanged Ar NUM
+.Op Fl \\-check\-host|\-h
+.Op Fl \\-check\-url|\-u
+.Op Fl \-debug
+.Op Fl \-info
+.Op Fl \-version
+.Op Fl \-help|\-?
+.Op Fl \-
+.Sh DESCRIPTION
+The
+.Nm
+utility checks the FreeBSD port tree Index
+and some part of the port's Makefiles for errors and warnings.
+.Pp
+By default it will scan the whole port tree, but you can select
+a subset of the ports with the options
+.Op Fl \-cat|\-c
+for categories,
+.Op Fl \-mnt|\-m
+for maintainers and
+.Op Fl \-port|\-p
+for ports.
+All these options expect a parameter which can be a single item
+or a comma\-separated list of items.
+If you combine several of these operators they will perform as
+a logical AND.
+.Pp
+In order to know which categories or maintainers are available
+for selection, you can use the
+.Op Fl \-show\-cat|\-C
+and
+.Op Fl \-show\-mnt|\-M
+options to view all the categories and maintainers with their
+number of associated ports.
+.Pp
+The two costlier analysis are disabled by default.
+You can check if the port's www sites hostnames are resolvable
+with the
+.Op Fl \-check\-host|\-h
+option (takes about 15 minutes on the
+whole port tree).
+And you can check if the port's www sites URL are available
+with the
+.Op Fl \-check\-url|\-u
+option, which implies the previous one
+(takes about 6 hours on the whole port tree).
+.Pp
+The checks list includes:
+.Bl -bullet
+.It
+Nonexistent Makefile
+.It
+Nonexistent INDEX:port\-path
+.It
+Unusual INDEX:installation\-prefix (warning)
+.It
+Too long INDEX:comments (> 70 characters) (warning)
+.It
+Uncapitalized INDEX:comments
+.It
+INDEX:comments ending with a dot
+.It
+INDEX:comments different from Makefile:COMMENT
+.It
+Nonexistent INDEX:description\-file
+.It
+URL ending INDEX:description\-file
+.It
+INDEX:description\-file content same as INDEX:comment
+.It
+INDEX:description\-file content no longer than INDEX:comment
+.It
+Nonexistent pkg\-plist, Makefile:PLIST_FILES/PLIST/PLIST_SUB (info)
+.It
+Makefile:PLIST_FILES abuse (warning)
+.It
+INDEX:maintainer different from Makefile:MAINTAINER
+.It
+Unofficial categories (warning)
+.It
+INDEX:categories different from Makefile:CATEGORIES
+.It
+Empty INDEX:www\-site
+.It
+Unresolvable INDEX:www\-site (optional)
+.It
+Unaccessible INDEX:www\-site (optional)
+.It
+INDEX:www\-site different from Makefile:WWW
+.It
+Ports marked as BROKEN, FORBIDDEN or DEPRECATED
+.It
+Ports marked as IGNORE (warning, unreliable)
+.It
+Ports marked as BROKEN, FORBIDDEN or DEPRECATED for too long
+.It
+Ports unchanged for a long time (info)
+.El
+.Pp
+It's possible to change the default values for PLIST_FILES abuse,
+BROKEN_since, DEPRECATED_since, FORBIDDEN_since and Unchanged_since
+with the
+.Op Fl \-plist ,
+.Op Fl \-broken ,
+.Op Fl \-deprecated ,
+.Op Fl \-forbidden
+and
+.Op Fl \-unchanged
+options, followed by a number of files for the first
+one and a number of days for the others.
+.Ss OPTIONS
+.Op Fl \-show\-cat|\-C
+Show categories with ports count
+.Pp
+.Op Fl \-show\-mnt|\-M
+Show maintainers with ports count
+.Pp
+.Op Fl \-cat|\-c Ar LIST
+Select only the comma\-separated categories in LIST
+.Pp
+.Op Fl \-mnt|\-m Ar LIST
+Select only the comma\-separated maintainers in LIST
+.Pp
+.Op Fl \-port|\-p Ar LIST
+Select only the comma\-separated ports in LIST
+.Pp
+.Op Fl \-plist Ar NUM
+Set PLIST_FILES abuse to NUM files
+.Pp
+.Op Fl \-broken Ar NUM
+Set BROKEN since to NUM days
+.Pp
+.Op Fl \-deprecated Ar NUM
+Set DEPRECATED since to NUM days
+.Pp
+.Op Fl \-forbidden Ar NUM
+Set FORBIDDEN since to NUM days
+.Pp
+.Op Fl \-unchanged Ar NUM
+Set Unchanged since to NUM days
+.Pp
+.Op Fl \-check\-host|\-h
+Enable checking hostname resolution (long!)
+.Pp
+.Op Fl \-check\-url|\-u
+Enable checking URL (very long!)
+.Pp
+.Op Fl \-debug
+Enable logging at debug level
+.Pp
+.Op Fl \-info
+Enable logging at info level
+.Pp
+.Op Fl \-version
+Print version and exit
+.Pp
+.Op Fl \-help|\-?
+Print usage and this help message and exit
+.Pp
+.Op Fl \-
+Options processing terminator
+.Sh FILES
+The whole port tree under
+.Pa /usr/ports
+\- as root, get the last version with "portsnap fetch update"
+.Pp
+.Pa /usr/ports/INDEX\-xx
+\- where xx is the major version of FreeBSD that you are using (as I write this xx=14).
+As root, get the last version with "cd /usr/ports ; make fetchindex"
+or rebuild it from your port tree with "cd /usr/ports ; make index"
+.Sh EXIT STATUS
+.Ex -std portstreelint
+.Sh EXAMPLES
+To analyze the full port tree (takes a long time!), do:
+.Bd -literal
+$ nohup portstreelint \-\-info \-hu > stdout.txt 2> stderr.txt &
+.Ed
+.Pp
+To analyze the ports of a specific maintainer identified by id@domain, do:
+.Bd -literal
+$ portstreelint \-\-info \-m id@domain
+.Ed
+.Sh SEE ALSO
+.Xr lint 1 ,
+.Xr portlint 1 ,
+.Xr vuxml 3
+.Sh STANDARDS
+The
+.Nm
+utility is not a standard UNIX command.
+.Pp
+This implementation tries to follow the PEP 8 style guide for Python code.
+.Sh PORTABILITY
+None. Works only on FreeBSD, but who needs anything else?
+.Sh HISTORY
+While working on the 4th version of the pysec2vuxml tool,
+I noticed there were errors in the FreeBSD port Index,
+so I built the
+.Em portlint2
+tool to analyze this more thoroughly...
+.Pp
+After discussions on the freebsd\-ports mailing list
+an interest in checking port vulnerabilities arose,
+which led me to convert that standalone command
+into a Python package in order to benefit from my
+.Em vuxml
+library.
+.Sh LICENSE
+It is available under the 3\-clause BSD license.
+.Sh AUTHORS
+.An Hubert Tournier
+.Lk https://github.com/HubTou
