@@ -1,4 +1,4 @@
-.Dd March 1, 2024
+.Dd March 3, 2024
 .Dt portstreelint 8
 .Os
 .Sh NAME
@@ -18,6 +18,7 @@
 .Op Fl \\-unchanged Ar NUM
 .Op Fl \\-check\-host|\-h
 .Op Fl \\-check\-url|\-u
+.Op Fl \\-output|\-o Ar FILE
 .Op Fl \-debug
 .Op Fl \-info
 .Op Fl \-version
@@ -87,7 +88,7 @@ INDEX:description\-file content same as INDEX:comment
 .It
 INDEX:description\-file content no longer than INDEX:comment
 .It
-Nonexistent pkg\-plist, Makefile:PLIST_FILES/PLIST/PLIST_SUB (info)
+Nonexistent pkg\-plist, Makefile:PLIST_FILES/PLIST/PLIST_SUB (debug)
 .It
 Makefile:PLIST_FILES abuse (warning)
 .It
@@ -105,13 +106,17 @@ Unaccessible INDEX:www\-site (optional)
 .It
 INDEX:www\-site different from Makefile:WWW
 .It
-Ports marked as BROKEN, FORBIDDEN or DEPRECATED
+Ports marked as BROKEN, DEPRECATED, FORBIDDEN, IGNORE, RESTRICTED (info)
 .It
-Ports marked as IGNORE (warning, unreliable)
+Ports marked with an EXPIRATION_DATE (warning)
 .It
-Ports marked as BROKEN, FORBIDDEN or DEPRECATED for too long
+Ports marked as BROKEN, FORBIDDEN or DEPRECATED for too long (warning)
 .It
 Ports unchanged for a long time (info)
+.It
+Makefile:PORTVERSION and Makefile:DISTVERSION used simultaneously
+.It
+VuXML vulnerabilities for the current port versions (warning)
 .El
 .Pp
 It's possible to change the default values for PLIST_FILES abuse,
@@ -125,6 +130,13 @@ and
 .Op Fl \-unchanged
 options, followed by a number of files for the first
 one and a number of days for the others.
+.Pp
+Finally, there's a
+.Op Fl \-output|\-o
+option to generate a CSV delimited file with the per\-maintainer
+findings to a specified filename. This allows for automated processing
+of the results, such as, for example, sending warning emails, storing
+results and displaying only diffs since previous run...
 .Ss OPTIONS
 .Op Fl \-show\-cat|\-C
 Show categories with ports count
@@ -162,6 +174,9 @@ Enable checking hostname resolution (long!)
 .Op Fl \-check\-url|\-u
 Enable checking URL (very long!)
 .Pp
+.Op Fl \-output|\-o
+Enable per\-maintainer CSV output to FILE
+.Pp
 .Op Fl \-debug
 Enable logging at debug level
 .Pp
@@ -176,15 +191,20 @@ Print usage and this help message and exit
 .Pp
 .Op Fl \-
 Options processing terminator
+.Sh ENVIRONMENT
+The
+.Ev PORTSTREELINT_DEBUG
+environment variable can be set to any value to enable debug mode.
 .Sh FILES
 The whole port tree under
 .Pa /usr/ports
 \- as root, get the last version with "portsnap fetch update"
 .Pp
 .Pa /usr/ports/INDEX\-xx
-\- where xx is the major version of FreeBSD that you are using (as I write this xx=14).
-As root, get the last version with "cd /usr/ports ; make fetchindex"
-or rebuild it from your port tree with "cd /usr/ports ; make index"
+\- where xx is the major version of FreeBSD that you are using
+(as I write this xx=14). As root, get the last version with
+"cd /usr/ports ; make fetchindex" or rebuild it from your port tree
+with "cd /usr/ports ; make index"
 .Sh EXIT STATUS
 .Ex -std portstreelint
 .Sh EXAMPLES
@@ -193,7 +213,14 @@ To analyze the full port tree (takes a long time!), do:
 $ nohup portstreelint \-\-info \-hu > stdout.txt 2> stderr.txt &
 .Ed
 .Pp
-To analyze the ports of a specific maintainer identified by id@domain, do:
+To analyze the full port tree in the background and generate a CSV
+file, do:
+.Bd -literal
+$ nohup portstreelint \-huo csv_results.txt > /dev/null 2>&1 &
+.Ed
+.Pp
+To analyze the ports of a specific maintainer identified by id@domain,
+do:
 .Bd -literal
 $ portstreelint \-\-info \-m id@domain
 .Ed
@@ -206,7 +233,8 @@ The
 .Nm
 utility is not a standard UNIX command.
 .Pp
-This implementation tries to follow the PEP 8 style guide for Python code.
+This implementation tries to follow the PEP 8 style guide for Python
+code.
 .Sh PORTABILITY
 None. Works only on FreeBSD, but who needs anything else?
 .Sh HISTORY
@@ -227,3 +255,13 @@ It is available under the 3\-clause BSD license.
 .Sh AUTHORS
 .An Hubert Tournier
 .Lk https://github.com/HubTou
+.Sh CAVEATS
+The IGNORE mark check is not reliable because this tool doesn't parse
+the ports' Makefiles, but just loads their variables without regard to
+the conditional tests that may surround them.
+.Pp
+PORTREVISION is not taken into account in the vulnerabilities check
+which may leads to reporting false positives. The ports using exotic
+versioning schemes will also be skipped because the library we use
+for version comparisons is geared toward Python ports and limited
+for this usage.

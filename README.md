@@ -5,6 +5,7 @@ use one of the following commands, depending on if you want only this tool, the 
 ```
 pip install pnu-portstreelint
 pip install PNU
+pip install 'PNU[freebsd]' # if you use a platform other than FreeBSD
 pip install pytnix
 ```
 
@@ -27,6 +28,7 @@ portstreelint - FreeBSD ports tree lint
 \[--unchanged NUM\]
 \[--check-host|-h\]
 \[--check-url|-u\]
+\[--output|-o FILE\]
 \[--debug\]
 \[--info\]
 \[--version\]
@@ -70,7 +72,7 @@ The checks list includes:
 * URL ending INDEX:description-file
 * INDEX:description-file content same as INDEX:comment
 * INDEX:description-file content no longer than INDEX:comment
-* Nonexistent pkg-plist, Makefile:PLIST_FILES/PLIST/PLIST_SUB (info)
+* Nonexistent pkg-plist, Makefile:PLIST_FILES/PLIST/PLIST_SUB (debug)
 * Makefile:PLIST_FILES abuse (warning)
 * INDEX:maintainer different from Makefile:MAINTAINER
 * Unofficial categories (warning)
@@ -79,16 +81,24 @@ The checks list includes:
 * Unresolvable INDEX:www-site (optional)
 * Unaccessible INDEX:www-site (optional)
 * INDEX:www-site different from Makefile:WWW
-* Ports marked as BROKEN, FORBIDDEN or DEPRECATED
-* Ports marked as IGNORE (warning, unreliable)
-* Ports marked as BROKEN, FORBIDDEN or DEPRECATED for too long
+* Ports marked as BROKEN, DEPRECATED, FORBIDDEN, IGNORE, RESTRICTED (info)
+* Ports marked with an EXPIRATION_DATE (warning)
+* Ports marked as BROKEN, FORBIDDEN or DEPRECATED for too long (warning)
 * Ports unchanged for a long time (info)
+* Makefile:PORTVERSION and Makefile:DISTVERSION used simultaneously
+* VuXML vulnerabilities for the current port versions (warning)
 
 It's possible to change the default values for PLIST_FILES abuse,
 BROKEN_since, DEPRECATED_since, FORBIDDEN_since and Unchanged_since
 with the *--plist*, *--broken*, *--deprecated*, *--forbidden* and
 *--unchanged* options, followed by a number of files for the first
 one and a number of days for the others.
+
+Finally, there's a *--output|-o* option to generate a CSV delimited
+file with the per-maintainer findings to a specified filename. This
+allows for automated processing of the results, such as, for example,
+sending warning emails, storing results and displaying only diffs
+since previous run...
 
 ### OPTIONS
 Options | Use
@@ -105,11 +115,15 @@ Options | Use
 --unchanged NUM|Set Unchanged since to NUM days
 --check-host\|-h|Enable checking hostname resolution (long!)
 --check-url\|-u|Enable checking URL (very long!)
+--output\|-o|Enable per-maintainer CSV output to FILE
 --debug|Enable logging at debug level
 --info|Enable logging at info level
 --version|Print version and exit
 --help\|-?|Print usage and this help message and exit
 --|Options processing terminator
+
+## ENVIRONMENT
+The *PORTSTREELINT_DEBUG* environment variable can be set to any value to enable debug mode.
 
 ## FILES
 The whole port tree under /usr/ports
@@ -131,6 +145,14 @@ $ nohup portstreelint --info -hu > stdout.txt 2> stderr.txt &
 Results for this example are available there:
 * [stdout output](https://www.frbsd.org/xch/stdout.txt),
 * [stderr output](https://www.frbsd.org/xch/stderr.txt) for details.
+
+To analyze the full port tree in the background and generate a CSV
+file, do:
+```Shell
+$ nohup portstreelint -huo csv_results.txt > /dev/null 2>&1 &
+```
+Results for this example are available there:
+* [CSV output](https://www.frbsd.org/xch/csv_results.txt) for machine processing.
 
 To analyze the ports of a specific maintainer identified by id@domain, do:
 ```Shell
@@ -164,3 +186,14 @@ It is available under the [3-clause BSD license](https://opensource.org/licenses
 
 ## AUTHORS
 [Hubert Tournier](https://github.com/HubTou)
+
+## CAVEATS
+The IGNORE mark check is not reliable because this tool doesn't parse
+the ports' Makefiles, but just loads their variables without regard to
+the conditional tests that may surround them.
+
+PORTREVISION is not taken into account in the vulnerabilities check
+which may leads to reporting false positives. The ports using exotic
+versioning schemes will also be skipped because the library we use
+for version comparisons is geared toward Python ports and limited
+for this usage.

@@ -15,10 +15,11 @@ from .library import load_freebsd_ports_dict, print_categories, print_maintainer
                      update_with_makefiles, check_port_path, check_installation_prefix, \
                      check_comment, check_description_file, check_plist, check_maintainer, \
                      check_categories, check_www_site, check_marks, check_static_ports, \
-                     print_notifications, print_summary
+                     check_vulnerabilities, print_notifications, output_notifications, \
+                     print_summary
 
 # Version string used by the what(1) and ident(1) commands:
-ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.0.1 (March 1st, 2024) by Hubert Tournier $"
+ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.1.0 (March 3, 2024) by Hubert Tournier $"
 
 # Default parameters. Can be overcome by command line options:
 parameters = {
@@ -35,6 +36,7 @@ parameters = {
         "DEPRECATED since": 6 * 30, # days
         "Unchanged since": 3 * 365, # days
     },
+    "Output filename": "",
     "Categories": [],
     "Maintainers": [],
     "Ports": [],
@@ -48,7 +50,7 @@ def _display_help():
     print("usage: portstreelint [--show-cat|-C] [--show-mnt|-M]", file=sys.stderr)
     print("        [--cat|-c LIST] [--mnt|-m LIST] [--port|-p LIST] [--plist NUM]", file=sys.stderr)
     print("        [--broken NUM] [--deprecated NUM] [--forbidden NUM] [--unchanged NUM]", file=sys.stderr)
-    print("        [--check-host|-h] [--check-url|-u]", file=sys.stderr)
+    print("        [--check-host|-h] [--check-url|-u] [--output|-o FILE]", file=sys.stderr)
     print("        [--debug] [--help|-?] [--info] [--version] [--]", file=sys.stderr)
     print("  ------------------  -------------------------------------------------------", file=sys.stderr)
     print("  --show-cat|-C       Show categories with ports count", file=sys.stderr)
@@ -63,6 +65,7 @@ def _display_help():
     print("  --unchanged NUM     Set Unchanged since to NUM days", file=sys.stderr)
     print("  --check-host|-h     Enable checking hostname resolution (long!)", file=sys.stderr)
     print("  --check-url|-u      Enable checking URL (very long!)", file=sys.stderr)
+    print("  --output|-o FILE    Enable per-maintainer CSV output to FILE", file=sys.stderr)
     print("  --debug             Enable logging at debug level", file=sys.stderr)
     print("  --info              Enable logging at info level", file=sys.stderr)
     print("  --version           Print version and exit", file=sys.stderr)
@@ -102,7 +105,7 @@ def _process_command_line():
 
     # option letters followed by : expect an argument
     # same for option strings followed by =
-    character_options = "CMc:hm:p:u?"
+    character_options = "CMc:hm:o:p:u?"
     string_options = [
         "broken=",
         "cat=",
@@ -114,6 +117,7 @@ def _process_command_line():
         "help",
         "info",
         "mnt=",
+        "output=",
         "port=",
         "plist=",
         "show-cat",
@@ -188,6 +192,9 @@ def _process_command_line():
 
         elif option in ("--mnt", "-m"):
             parameters["Maintainers"] = argument.lower().split(",")
+
+        elif option in ("--output", "-o"):
+            parameters["Output filename"] = argument
 
         elif option == "--plist":
             try:
@@ -288,14 +295,20 @@ def main():
         # that the URL is accessible, and identity between Index and Makefile
         check_www_site(ports, parameters["Checks"]["Hostnames"], parameters["Checks"]["URL"])
 
-        # Check the existence of BROKEN, IGNORE or FORBIDDEN variables in Makefiles
+        # Check the existence of marks variables (ie. BROKEN, etc.) in Makefiles
         check_marks(ports, parameters["Limits"])
 
         # Check static ports
         check_static_ports(ports, parameters["Limits"]["Unchanged since"])
 
+        # Check vulnerabilities
+        check_vulnerabilities(ports)
+
         # Print results per maintainer
         print_notifications()
+
+        # Output per maintainer results in a CSV file
+        output_notifications(parameters["Output filename"])
 
         # Print summary of findings
         print_summary(parameters["Limits"])
