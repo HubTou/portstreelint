@@ -1,14 +1,11 @@
 # portstreelint TODOLIST
 
 ## Planned changes
-* Next version: splitting library.py code into multiple files for modularity
-* Version +2: checking distfiles availability
+* Next version: checking distfiles availability
 
 ## Probable evolutions
 
 ## Possible evolutions
-* Providing a mechanism to keep track of external events
-  * For example, the INDEX:www-site being unavailable since date X
 * Having a configuration file
   * Limits setting
   * Checks disabling
@@ -22,6 +19,8 @@
 
 ## Unprobable evolutions
 * Adding an option to notice port maintainers by email => will be better done by a wrapping script using the per-maintainer output
+* Providing a mechanism to keep track of external events => will be better done by a wrapping script using the per-maintainer output
+  * For example, the INDEX:www-site being unavailable since date X
 * Side functionalities => not the direct purpose of this tool
   * Checking reported vulnerabilities in dependencies
   * Checking unavailable ports in dependencies

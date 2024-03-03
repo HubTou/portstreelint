@@ -11,15 +11,26 @@ import sys
 
 import libpnu
 
-from .library import load_freebsd_ports_dict, print_categories, print_maintainers, filter_ports, \
-                     update_with_makefiles, check_port_path, check_installation_prefix, \
-                     check_comment, check_description_file, check_plist, check_maintainer, \
-                     check_categories, check_www_site, check_marks, check_static_ports, \
-                     check_vulnerabilities, print_notifications, output_notifications, \
-                     print_summary
+from .load_data import load_freebsd_ports_dict, filter_ports, update_with_makefiles
+from .check_port_path import check_port_path
+from .check_installation_prefix import check_installation_prefix
+from .check_comment import check_comment
+from .check_description_file import check_description_file
+from .check_plist import check_plist
+from .check_maintainer import check_maintainer
+from .check_categories import check_categories
+from .check_www_site import check_www_site
+from .check_marks import check_marks
+from .check_unchanging_ports import check_unchanging_ports
+from .check_vulnerabilities import check_vulnerabilities
+from .show_categories import show_categories
+from .show_maintainers import show_maintainers
+from .show_notifications import show_notifications, output_notifications
+from .show_summary import show_summary
+
 
 # Version string used by the what(1) and ident(1) commands:
-ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.1.1 (March 3, 2024) by Hubert Tournier $"
+ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.1.2 (March 4, 2024) by Hubert Tournier $"
 
 # Default parameters. Can be overcome by command line options:
 parameters = {
@@ -258,11 +269,11 @@ def main():
         sys.exit(1)
 
     if parameters["Show categories"]:
-        # Only print port categories with count of associated ports
-        print_categories(ports)
+        # Only show port categories with count of associated ports
+        show_categories(ports)
     elif parameters["Show maintainers"]:
-        # Only print port maintainers with count of associated ports
-        print_maintainers(ports)
+        # Only show port maintainers with count of associated ports
+        show_maintainers(ports)
     else:
         ports = filter_ports(ports, parameters["Categories"], parameters["Maintainers"], parameters["Ports"])
 
@@ -299,20 +310,20 @@ def main():
         check_marks(ports, parameters["Limits"])
 
         # Check static ports
-        check_static_ports(ports, parameters["Limits"]["Unchanged since"])
+        check_unchanging_ports(ports, parameters["Limits"]["Unchanged since"])
 
         # Check vulnerabilities
         check_vulnerabilities(ports)
 
         # Print results per maintainer
-        print_notifications()
+        show_notifications()
 
         # Output per maintainer results in a CSV file
         if parameters["Output filename"]:
             output_notifications(parameters["Output filename"])
 
         # Print summary of findings
-        print_summary(parameters["Limits"])
+        show_summary(parameters["Limits"])
 
     sys.exit(0)
 

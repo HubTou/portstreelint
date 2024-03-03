@@ -36,8 +36,8 @@ portstreelint - FreeBSD ports tree lint
 \[--\]
 
 ## DESCRIPTION
-The **portstreelint** utility checks the FreeBSD port tree Index
-and some part of the port's Makefiles for errors and warnings.
+The **portstreelint** utility checks the FreeBSD ports tree Index
+and some parts of the port's Makefiles for errors and warnings.
 
 By default it will scan the whole port tree, but you can select
 a subset of the ports with the options *--cat|-c* for categories,
