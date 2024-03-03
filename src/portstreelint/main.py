@@ -19,7 +19,7 @@ from .library import load_freebsd_ports_dict, print_categories, print_maintainer
                      print_summary
 
 # Version string used by the what(1) and ident(1) commands:
-ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.1.0 (March 3, 2024) by Hubert Tournier $"
+ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.1.1 (March 3, 2024) by Hubert Tournier $"
 
 # Default parameters. Can be overcome by command line options:
 parameters = {
@@ -308,7 +308,8 @@ def main():
         print_notifications()
 
         # Output per maintainer results in a CSV file
-        output_notifications(parameters["Output filename"])
+        if parameters["Output filename"]:
+            output_notifications(parameters["Output filename"])
 
         # Print summary of findings
         print_summary(parameters["Limits"])
