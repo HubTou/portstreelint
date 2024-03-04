@@ -202,7 +202,8 @@ def _process_command_line():
                 sys.exit(1)
 
         elif option in ("--mnt", "-m"):
-            parameters["Maintainers"] = argument.lower().split(",")
+            maintainers = argument.lower().split(",")
+            parameters["Maintainers"] = [m if '@' in m else f"{m}@freebsd.org" for m in maintainers]
 
         elif option in ("--output", "-o"):
             parameters["Output filename"] = argument
