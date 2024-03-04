@@ -2,6 +2,7 @@
 """ portstreelint - FreeBSD ports tree lint
 License: 3-clause BSD (see https://opensource.org/licenses/BSD-3-Clause)
 Author: Hubert Tournier
+Contributor: Emanuel Haupt
 """
 
 import getopt
@@ -30,7 +31,7 @@ from .show_summary import show_summary
 
 
 # Version string used by the what(1) and ident(1) commands:
-ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.1.2 (March 4, 2024) by Hubert Tournier $"
+ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.1.3 (March 4, 2024) by Hubert Tournier $"
 
 # Default parameters. Can be overcome by command line options:
 parameters = {
@@ -204,6 +205,7 @@ def _process_command_line():
         elif option in ("--mnt", "-m"):
             maintainers = argument.lower().split(",")
             parameters["Maintainers"] = [m if '@' in m else f"{m}@freebsd.org" for m in maintainers]
+
 
         elif option in ("--output", "-o"):
             parameters["Output filename"] = argument

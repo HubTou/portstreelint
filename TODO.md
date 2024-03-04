@@ -4,13 +4,14 @@
 * Next version: checking distfiles availability
 
 ## Probable evolutions
-
-## Possible evolutions
 * Having a configuration file
   * Limits setting
-  * Checks disabling
+  * Checks enabling or disabling
   * Exclusion of ports, maintainers, categories
   * Correction of false positives
+
+## Possible evolutions
+* Better Makefiles exploitation by expanding embedded variables when possible locally
 * Checking the existence of domains in maintainer's email addresses
 * Checking the depends fields (extract/patch/fetch/build/run):
   * between the Index and the Makefiles

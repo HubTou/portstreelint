@@ -1,4 +1,4 @@
-.Dd March 3, 2024
+.Dd March 4, 2024
 .Dt portstreelint 8
 .Os
 .Sh NAME
@@ -28,7 +28,7 @@
 The
 .Nm
 utility checks the FreeBSD ports tree Index
-and some parts of the port's Makefiles for errors and warnings.
+and some parts of the ports' Makefiles for errors and warnings.
 .Pp
 By default it will scan the whole port tree, but you can select
 a subset of the ports with the options
@@ -42,6 +42,10 @@ All these options expect a parameter which can be a single item
 or a comma\-separated list of items.
 If you combine several of these operators they will perform as
 a logical AND.
+.Pp
+The
+.Op Fl \-mnt|\-m
+option defaults to @FreeBSD.org for unspecified domains.
 .Pp
 In order to know which categories or maintainers are available
 for selection, you can use the
@@ -193,7 +197,7 @@ Print usage and this help message and exit
 Options processing terminator
 .Sh ENVIRONMENT
 The
-.Ev PORTSTREELINT_DEBUG
+.Ev PTLINT_DEBUG
 environment variable can be set to any value to enable debug mode.
 .Sh FILES
 The whole port tree under

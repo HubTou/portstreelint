@@ -9,7 +9,7 @@ pip install 'PNU[freebsd]' # if you use a platform other than FreeBSD
 pip install pytnix
 ```
 
-# PORTSTREELINT(8)
+# PortsTreeLint(8)
 
 ## NAME
 portstreelint - FreeBSD ports tree lint
@@ -37,7 +37,7 @@ portstreelint - FreeBSD ports tree lint
 
 ## DESCRIPTION
 The **portstreelint** utility checks the FreeBSD ports tree Index
-and some parts of the port's Makefiles for errors and warnings.
+and some parts of the ports' Makefiles for errors and warnings.
 
 By default it will scan the whole port tree, but you can select
 a subset of the ports with the options *--cat|-c* for categories,
@@ -46,6 +46,9 @@ All these options expect a parameter which can be a single item
 or a comma-separated list of items.
 If you combine several of these operators they will perform as
 a logical AND.
+
+The *--mnt|-m* option defaults to @FreeBSD.org for unspecified
+domains.
 
 In order to know which categories or maintainers are available
 for selection, you can use the *--show-cat|-C* and *--show-mnt|-M*
@@ -123,7 +126,7 @@ Options | Use
 --|Options processing terminator
 
 ## ENVIRONMENT
-The *PORTSTREELINT_DEBUG* environment variable can be set to any value to enable debug mode.
+The *PTLINT_DEBUG* environment variable can be set to any value to enable debug mode.
 
 ## FILES
 The whole port tree under /usr/ports
