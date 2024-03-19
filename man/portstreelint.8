@@ -1,4 +1,4 @@
-.Dd March 4, 2024
+.Dd March 18, 2024
 .Dt portstreelint 8
 .Os
 .Sh NAME
@@ -241,6 +241,11 @@ This implementation tries to follow the PEP 8 style guide for Python
 code.
 .Sh PORTABILITY
 None. Works only on FreeBSD, but who needs anything else?
+.Pp
+Packaged for
+.Fx
+as
+.Em pyXX\\-pnu\\-portstreelint .
 .Sh HISTORY
 While working on the 4th version of the pysec2vuxml tool,
 I noticed there were errors in the FreeBSD port Index,
@@ -264,8 +269,9 @@ The IGNORE mark check is not reliable because this tool doesn't parse
 the ports' Makefiles, but just loads their variables without regard to
 the conditional tests that may surround them.
 .Pp
-PORTREVISION is not taken into account in the vulnerabilities check
-which may leads to reporting false positives. The ports using exotic
-versioning schemes will also be skipped because the library we use
-for version comparisons is geared toward Python ports and limited
-for this usage.
+The nonexistent plist is not very helpful because there are
+unaccounted autoplist options for some languages (Python)...
+.Pp
+The ports using exotic versioning schemes will be skipped from the
+vulnerability check because the library we use for version comparisons
+is geared toward Python ports and limited for this usage.

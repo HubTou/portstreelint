@@ -31,7 +31,7 @@ from .show_summary import show_summary
 
 
 # Version string used by the what(1) and ident(1) commands:
-ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.1.3 (March 4, 2024) by Hubert Tournier $"
+ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.2.0 (March 20, 2024) by Hubert Tournier $"
 
 # Default parameters. Can be overcome by command line options:
 parameters = {
@@ -85,13 +85,6 @@ def _display_help():
     print("  --                  Options processing terminator", file=sys.stderr)
     print(file=sys.stderr)
     #pylint: enable=C0301
-
-
-####################################################################################################
-def _handle_interrupts(signal_number, current_stack_frame):
-    """ Prevent SIGINT signals from displaying an ugly stack trace """
-    print(" Interrupted!\n", file=sys.stderr)
-    sys.exit(0)
 
 
 ####################################################################################################
@@ -255,7 +248,7 @@ def main():
     program_name = os.path.basename(sys.argv[0])
 
     libpnu.initialize_debugging(program_name)
-    libpnu.handle_interrupt_signals(_handle_interrupts)
+    libpnu.handle_interrupt_signals(libpnu.interrupt_handler_function)
     _process_environment_variables()
     _ = _process_command_line()
 

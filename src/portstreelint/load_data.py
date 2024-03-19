@@ -10,6 +10,8 @@ import os
 import re
 import sys
 
+import libpnu
+
 from .library import counters, notify_maintainer
 
 ####################################################################################################
@@ -108,28 +110,9 @@ def update_with_makefiles(ports):
             # Getting the port last modification datetime:
             ports[name]["Last modification"] = datetime.datetime.fromtimestamp(os.path.getmtime(port_makefile)).replace(tzinfo=datetime.timezone.utc)
 
-            with open(port_makefile, encoding='utf-8', errors='ignore') as file:
-                lines = file.read().splitlines()
+            lines = libpnu.load_strings_from_file(port_makefile)
 
-            previous_lines = ""
             for line in lines:
-                if not "#" in line:
-                    line = previous_lines + line.strip()
-                elif "\\#" in line:
-                    line = re.sub(r"\\#", "²", line) # horrible kludge!
-                    line = previous_lines + re.sub(r"[ 	]*#.*", "", line.strip()) # remove comments
-                    line = re.sub(r"²", "\\#", line)
-                else:
-                    line = previous_lines + re.sub(r"[ 	]*#.*", "", line.strip()) # remove comments
-                previous_lines = ""
-
-                if not line:
-                    continue
-
-                if line.endswith("\\"): # Continued line
-                    previous_lines = re.sub(r"\\$", "", line)
-                    continue
-
                 group = re.match(r"^([A-Z_]+)=[ 	]*(.*)", line)
                 if group is not None: # Makefile variable
                     ports[name][group[1]] = group[2]

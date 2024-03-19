@@ -92,6 +92,8 @@ def check_vulnerabilities(ports):
 
         if portversion and '$' not in portversion:
             version = portversion
+            if portrevision:
+                version += '_' + portrevision
 
         # Try to figure out ourselves from the port name:
         if not portname or not version:
@@ -103,10 +105,7 @@ def check_vulnerabilities(ports):
                 version = re.sub(r",[0-9]+$", "", version)
                 logging.debug("Port epoch without PORTEPOCH for port %s", name)
 
-            if portrevision:
-                version = re.sub(r"_" + portrevision + "$", "", version)
-            elif '_' in version:
-                version = re.sub(r"_[0-9]+$", "", version)
+            if not portrevision and '_' in version:
                 logging.debug("Port revision without PORTREVISION for port %s", name)
 
             group = re.match(r"^(.*)-([^-]+)$", version)

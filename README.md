@@ -175,6 +175,8 @@ This implementation tries to follow the [PEP 8](https://www.python.org/dev/peps/
 ## PORTABILITY
 None. Works only on FreeBSD, but who needs anything else?
 
+Packaged for FreeBSD as *pyXX-pnu-portstreelint*.
+
 ## HISTORY
 While working on the 4th version of the [pysec2vuxml](https://github.com/HubTou/pysec2vuxml) tool,
 I noticed there were errors in the FreeBSD port Index,
@@ -195,8 +197,9 @@ The IGNORE mark check is not reliable because this tool doesn't parse
 the ports' Makefiles, but just loads their variables without regard to
 the conditional tests that may surround them.
 
-PORTREVISION is not taken into account in the vulnerabilities check
-which may leads to reporting false positives. The ports using exotic
-versioning schemes will also be skipped because the library we use
-for version comparisons is geared toward Python ports and limited
-for this usage.
+The nonexistent plist is not very helpful because there are unaccounted
+autoplist options for some languages (Python)...
+
+The ports using exotic versioning schemes will be skipped from the
+vulnerability check because the library we use for version comparisons
+is geared toward Python ports and limited for this usage.
