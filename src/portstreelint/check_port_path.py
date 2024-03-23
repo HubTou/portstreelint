@@ -10,11 +10,13 @@ import os
 from .library import counters, notify_maintainer
 
 ####################################################################################################
-def check_port_path(ports):
+def check_port_path(ports, ports_dir):
     """ Checks the port-path field existence """
     for name, port in ports.items():
-        if not os.path.isdir(port["port-path"]):
-            logging.error("Nonexistent port-path '%s' for port %s", port["port-path"], name)
+        # Use the PORTSDIR we have been told to, rather than the system's one
+        port_path = port["port-path"].replace("/usr/ports", ports_dir)
+        if not os.path.isdir(port_path):
+            logging.error("Nonexistent port-path '%s' for port %s", port_path, name)
             counters["Nonexistent port-path"] += 1
             notify_maintainer(port["maintainer"], "Nonexistent port-path", name)
 

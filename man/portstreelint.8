@@ -1,4 +1,4 @@
-.Dd March 18, 2024
+.Dd March 23, 2024
 .Dt portstreelint 8
 .Os
 .Sh NAME
@@ -6,24 +6,31 @@
 .Nd FreeBSD ports tree lint
 .Sh SYNOPSIS
 .Nm
-.Op Fl \\-show\-cat|\-C
-.Op Fl \\-show\-mnt|\-M
-.Op Fl \\-cat|\-c Ar LIST
-.Op Fl \\-mnt|\-m Ar LIST
-.Op Fl \\-port|\-p Ar LIST
-.Op Fl \\-plist Ar NUM
-.Op Fl \\-broken Ar NUM
-.Op Fl \\-deprecated Ar NUM
-.Op Fl \\-forbidden Ar NUM
-.Op Fl \\-unchanged Ar NUM
-.Op Fl \\-check\-host|\-h
-.Op Fl \\-check\-url|\-u
-.Op Fl \\-output|\-o Ar FILE
+.Op Fl \-tree|\-t Ar DIR
+.Op Fl \-show\-cat|\-C
+.Op Fl \-show\-mnt|\-M
+.Op Fl \-cat|\-c Ar LIST
+.Op Fl \-mnt|\-m Ar LIST
+.Op Fl \-port|\-p Ar LIST
+.Op Fl \-plist Ar NUM
+.Op Fl \-broken Ar NUM
+.Op Fl \-deprecated Ar NUM
+.Op Fl \-forbidden Ar NUM
+.Op Fl \-unchanged Ar NUM
+.Op Fl \-check\-host|\-h
+.Op Fl \-check\-url|\-u
+.Op Fl \-output|\-o Ar FILE
 .Op Fl \-debug
 .Op Fl \-info
 .Op Fl \-version
 .Op Fl \-help|\-?
 .Op Fl \-
+.Pp
+The aliases
+.Em ptlint
+and
+.Em ptl
+are also available to shorten the command name.
 .Sh DESCRIPTION
 The
 .Nm
@@ -142,6 +149,9 @@ findings to a specified filename. This allows for automated processing
 of the results, such as, for example, sending warning emails, storing
 results and displaying only diffs since previous run...
 .Ss OPTIONS
+.Op Fl \-tree|\-t Ar DIR
+Ports directory (default=/usr/ports)
+.Pp
 .Op Fl \-show\-cat|\-C
 Show categories with ports count
 .Pp
@@ -199,16 +209,39 @@ Options processing terminator
 The
 .Ev PTLINT_DEBUG
 environment variable can be set to any value to enable debug mode.
+.Pp
+If the system's
+.Ev PORTSDIR
+environment variable is set, it'll be used instead of the
+default
+.Pa /usr/ports .
+But the
+.Op Fl \-tree|\-t Ar DIR
+option will still override it.
 .Sh FILES
 The whole port tree under
-.Pa /usr/ports
-\- as root, get the last version with "portsnap fetch update"
+.Pa /usr/ports ,
+or the location indicated by the
+.Ev PORTSDIR
+environment variable, or the
+.Op Fl \-tree|\-t
+argument:
+.Bl -bullet
+.It
+as root, if you have installed portsnap, update to the last version with "portsnap fetch update"
+.It
+or, if you have installed git, clone the latest repository with "git clone https://git.FreeBSD.org/ports.git /usr/ports"
+.El
 .Pp
 .Pa /usr/ports/INDEX\-xx
-\- where xx is the major version of FreeBSD that you are using
-(as I write this xx=14). As root, get the last version with
-"cd /usr/ports ; make fetchindex" or rebuild it from your port tree
-with "cd /usr/ports ; make index"
+where xx is the major version of FreeBSD that you are using
+(as I write this xx=14).
+.Bl -bullet
+.It
+as root, get the last version with "cd /usr/ports ; make fetchindex"
+.It
+or rebuild it from your port tree with "cd /usr/ports ; make index"
+.El
 .Sh EXIT STATUS
 .Ex -std portstreelint
 .Sh EXAMPLES
@@ -229,9 +262,12 @@ do:
 $ portstreelint \-\-info \-m id@domain
 .Ed
 .Sh SEE ALSO
+.Xr ports 7 ,
 .Xr lint 1 ,
 .Xr portlint 1 ,
 .Xr vuxml 3
+.Pp
+.Lk https://docs.freebsd.org/en/books/porters\-handbook/ FreeBSD Porter's Handbook
 .Sh STANDARDS
 The
 .Nm

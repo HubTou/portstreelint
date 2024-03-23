@@ -31,10 +31,11 @@ from .show_summary import show_summary
 
 
 # Version string used by the what(1) and ident(1) commands:
-ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.2.0 (March 20, 2024) by Hubert Tournier $"
+ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.2.1 (March 23, 2024) by Hubert Tournier $"
 
 # Default parameters. Can be overcome by command line options:
 parameters = {
+    "Ports dir": "/usr/ports",
     "Show categories": False,
     "Show maintainers": False,
     "Checks": {
@@ -59,12 +60,13 @@ parameters = {
 def _display_help():
     """ Display usage and help """
     #pylint: disable=C0301
-    print("usage: portstreelint [--show-cat|-C] [--show-mnt|-M]", file=sys.stderr)
+    print("usage: portstreelint [--tree|-t DIR] [--show-cat|-C] [--show-mnt|-M]", file=sys.stderr)
     print("        [--cat|-c LIST] [--mnt|-m LIST] [--port|-p LIST] [--plist NUM]", file=sys.stderr)
     print("        [--broken NUM] [--deprecated NUM] [--forbidden NUM] [--unchanged NUM]", file=sys.stderr)
     print("        [--check-host|-h] [--check-url|-u] [--output|-o FILE]", file=sys.stderr)
     print("        [--debug] [--help|-?] [--info] [--version] [--]", file=sys.stderr)
     print("  ------------------  -------------------------------------------------------", file=sys.stderr)
+    print("  --tree|-t DIR       Ports directory (default=/usr/ports)", file=sys.stderr)
     print("  --show-cat|-C       Show categories with ports count", file=sys.stderr)
     print("  --show-mnt|-M       Show maintainers with ports count", file=sys.stderr)
     print("  --cat|-c LIST       Select only the comma-separated categories in LIST", file=sys.stderr)
@@ -97,6 +99,12 @@ def _process_environment_variables():
     if "PORTSTREELINT_DEBUG" in os.environ:
         logging.disable(logging.NOTSET)
 
+    if "PORTSDIR" in os.environ:
+        if os.environ["PORTSDIR"].endswith(os.sep):
+            parameters["Ports dir"] = os.environ["PORTSDIR"][:-1]
+        else:
+            parameters["Ports dir"] = os.environ["PORTSDIR"]
+
     logging.debug("_process_environment_variables(): parameters:")
     logging.debug(parameters)
 
@@ -110,7 +118,7 @@ def _process_command_line():
 
     # option letters followed by : expect an argument
     # same for option strings followed by =
-    character_options = "CMc:hm:o:p:u?"
+    character_options = "CMc:hm:o:p:t:u?"
     string_options = [
         "broken=",
         "cat=",
@@ -127,6 +135,7 @@ def _process_command_line():
         "plist=",
         "show-cat",
         "show-mnt",
+        "tree=",
         "unchanged=",
         "version",
     ]
@@ -224,6 +233,16 @@ def _process_command_line():
             parameters["Show maintainers"] = True
             parameters["Show categories"] = False
 
+        elif option in ("--tree", "-t"):
+            if os.path.isdir(argument):
+                if argument.endswith(os.sep):
+                    parameters["Ports dir"] = argument[:-1]
+                else:
+                    parameters["Ports dir"] = argument
+            else:
+                logging.critical("--tree|-t argument must be a directory name")
+                sys.exit(1)
+
         elif option == "--unchanged":
             try:
                 parameters["Checks"]["Unchanged since"] = int(argument)
@@ -256,7 +275,7 @@ def main():
     # and verify structural integrity (ie: 13 pipe-separated fields)
     # and unicity of distribution-names
     try:
-        ports = load_freebsd_ports_dict()
+        ports = load_freebsd_ports_dict(parameters["Ports dir"])
     except SystemError:
         logging.critical("This program will only run on a FreeBSD operating system")
         sys.exit(1)
@@ -274,10 +293,10 @@ def main():
         ports = filter_ports(ports, parameters["Categories"], parameters["Maintainers"], parameters["Ports"])
 
         # Check the existence of port Makefile and load its variables
-        ports = update_with_makefiles(ports)
+        ports = update_with_makefiles(ports, parameters["Ports dir"])
 
         # Check the existence of port-path
-        check_port_path(ports)
+        check_port_path(ports, parameters["Ports dir"])
 
         # Check unusual installation-prefix
         check_installation_prefix(ports)
@@ -286,10 +305,10 @@ def main():
         check_comment(ports)
 
         # Check the existence of description-file
-        check_description_file(ports)
+        check_description_file(ports, parameters["Ports dir"])
 
         # Check the package list
-        check_plist(ports, parameters["Limits"]["PLIST abuse"])
+        check_plist(ports, parameters["Limits"]["PLIST abuse"], parameters["Ports dir"])
 
         # Cross-check maintainer identity between Index and Makefile
         check_maintainer(ports)

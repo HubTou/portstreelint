@@ -10,13 +10,16 @@ import os
 from .library import counters, notify_maintainer
 
 ####################################################################################################
-def check_plist(ports, plist_abuse):
+def check_plist(ports, plist_abuse, ports_dir):
     """ Checks the package list existence and compliance with rules
     Rules at https://docs.freebsd.org/en/books/porters-handbook/book/#porting-pkg-plist
     """
     for name, port in ports.items():
-        if os.path.isdir(port["port-path"]):
-            if not os.path.isfile(port["port-path"] + os.sep + "pkg-plist"):
+        # Use the PORTSDIR we have been told to, rather than the system's one
+        port_path = port["port-path"].replace("/usr/ports", ports_dir)
+
+        if os.path.isdir(port_path):
+            if not os.path.isfile(port_path + os.sep + "pkg-plist"):
                 if not "PLIST_FILES" in port:
                     if not "PLIST" in port and not "PLIST_SUB" in port:
                         logging.debug("Nonexistent pkg-plist/PLIST_FILES/PLIST/PLIST_SUB for port %s", name)

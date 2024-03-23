@@ -10,25 +10,29 @@ import os
 from .library import counters, notify_maintainer
 
 ####################################################################################################
-def check_description_file(ports):
+def check_description_file(ports, ports_dir):
     """ Checks the description-file field consistency and existence """
     for name, port in ports.items():
+        # Use the PORTSDIR we have been told to, rather than the system's one
+        port_path = port["port-path"].replace("/usr/ports", ports_dir)
+        description_file = port["description-file"].replace("/usr/ports", ports_dir)
+
         nonexistent = False
-        if not port["description-file"].startswith(port["port-path"]):
-            if not os.path.isfile(port["description-file"]):
+        if not description_file.startswith(port_path):
+            if not os.path.isfile(description_file):
                 nonexistent = True
-        elif not os.path.isdir(port["port-path"]):
+        elif not os.path.isdir(port_path):
             pass # already reported
-        elif not os.path.isfile(port["description-file"]):
+        elif not os.path.isfile(description_file):
             nonexistent = True
 
         if nonexistent:
-            logging.error("Nonexistent description-file '%s' for port %s", port["description-file"], name)
+            logging.error("Nonexistent description-file '%s' for port %s", description_file, name)
             counters["Nonexistent description-file"] += 1
             notify_maintainer(port["maintainer"], "Nonexistent description-file", name)
         else:
             try:
-                with open(port["description-file"], encoding="utf-8", errors="ignore") as file:
+                with open(description_file, encoding="utf-8", errors="ignore") as file:
                     lines = file.read().splitlines()
             except:
                 lines = []

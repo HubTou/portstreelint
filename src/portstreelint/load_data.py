@@ -15,7 +15,7 @@ import libpnu
 from .library import counters, notify_maintainer
 
 ####################################################################################################
-def load_freebsd_ports_dict():
+def load_freebsd_ports_dict(ports_dir):
     """ Returns a dictionary of FreeBSD ports """
     ports = {}
 
@@ -27,12 +27,12 @@ def load_freebsd_ports_dict():
     # On which version?
     os_version = operating_system.replace("freebsd", "")
 
-    # Is the ports list installed?
-    ports_index = "/usr/ports/INDEX-" + os_version
+    # Is the ports index installed?
+    ports_index = ports_dir + os.sep + "INDEX-" + os_version
     if not os.path.isfile(ports_index):
         raise FileNotFoundError
 
-    # Loading the ports list:
+    # Loading the ports index:
     with open(ports_index, encoding='utf-8', errors='ignore') as file:
         lines = file.read().splitlines()
 
@@ -95,13 +95,15 @@ def filter_ports(ports, selected_categories, selected_maintainers, selected_port
 
 
 ####################################################################################################
-def update_with_makefiles(ports):
+def update_with_makefiles(ports, ports_dir):
     """ Loads selected part of port's Makefiles for cross-checking things """
     for name, port in ports.items():
-        if not os.path.isdir(port["port-path"]):
+        # Use the PORTSDIR we have been told to, rather than the system's one
+        port_path = port["port-path"].replace("/usr/ports", ports_dir)
+        if not os.path.isdir(port_path):
             continue
 
-        port_makefile = port["port-path"] + os.sep + 'Makefile'
+        port_makefile = port_path + os.sep + 'Makefile'
         if not os.path.isfile(port_makefile):
             logging.error("Nonexistent Makefile for port %s", name)
             counters["Nonexistent Makefile"] += 1

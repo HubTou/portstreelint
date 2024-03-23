@@ -1,3 +1,6 @@
+[![PyPI package](https://repology.org/badge/version-for-repo/pypi/python:pnu-portstreelint.svg)](https://repology.org/project/python:pnu-portstreelint/versions)
+[![FreeBSD port](https://repology.org/badge/version-for-repo/freebsd/python:pnu-portstreelint.svg)](https://repology.org/project/python:pnu-portstreelint/versions)
+
 # Installation
 Once you have installed [Python](https://www.python.org/downloads/) and its packages manager [pip](https://pip.pypa.io/en/stable/installation/),
 use one of the following commands, depending on if you want only this tool, the full set of PNU tools, or PNU plus a selection of additional third-parties tools:
@@ -16,6 +19,7 @@ portstreelint - FreeBSD ports tree lint
 
 ## SYNOPSIS
 **portstreelint**
+\[--tree|-t DIR\]
 \[--show-cat|-C\]
 \[--show-mnt|-M\]
 \[--cat|-c LIST\]
@@ -34,6 +38,8 @@ portstreelint - FreeBSD ports tree lint
 \[--version\]
 \[--help|-?\]
 \[--\]
+
+The aliases **ptlint** and **ptl** are also available to shorten the command name.
 
 ## DESCRIPTION
 The **portstreelint** utility checks the FreeBSD ports tree Index
@@ -106,6 +112,7 @@ since previous run...
 ### OPTIONS
 Options | Use
 ------- | ---
+--tree\|-t DIR|Ports directory (default=/usr/ports)
 --show-cat\|-C|Show categories with ports count
 --show-mnt\|-M|Show maintainers with ports count
 --cat\|-c LIST|Select only the comma-separated categories in LIST
@@ -128,14 +135,19 @@ Options | Use
 ## ENVIRONMENT
 The *PTLINT_DEBUG* environment variable can be set to any value to enable debug mode.
 
+If the system's *PORTSDIR* environment variable is set, it'll be used instead of the
+default "/usr/ports". But the *--tree|-t DIR* option will still override it.
+
 ## FILES
-The whole port tree under /usr/ports
-- as root, get the last version with "portsnap fetch update"
+The whole port tree under /usr/ports, or the location indicated by the *PORTSDIR*
+environment variable, or the *--tree|-t* argument:
+- as root, if you have installed portsnap, update to the last version with "portsnap fetch update"
+- or, if you have installed git, clone the latest repository with "git clone https://git.FreeBSD.org/ports.git /usr/ports"
 
 [/usr/ports/INDEX-xx](https://wiki.freebsd.org/Ports/INDEX)
-- where xx is the major version of FreeBSD that you are using (as I write this xx=14).
-As root, get the last version with "cd /usr/ports ; make fetchindex"
-or rebuild it from your port tree with "cd /usr/ports ; make index"
+where xx is the major version of FreeBSD that you are using (as I write this xx=14).
+- as root, get the last version with "cd /usr/ports ; make fetchindex"
+- or rebuild it from your port tree with "cd /usr/ports ; make index"
 
 ## EXIT STATUS
 The **portstreelint** utility exits 0 on success, and >0 if an error occurs.
@@ -163,9 +175,12 @@ $ portstreelint --info -m id@domain
 ```
 
 ## SEE ALSO
+[ports(7)](https://man.freebsd.org/cgi/man.cgi?query=ports),
 [lint(1)](https://man.freebsd.org/cgi/man.cgi?query=lint&manpath=Unix+Seventh+Edition),
 [portlint(1)](https://www.freshports.org/ports-mgmt/portlint/),
 [vuxml(3)](https://github.com/HubTou/vuxml)
+
+[FreeBSD Porter's Handbook](https://docs.freebsd.org/en/books/porters-handbook/)
 
 ## STANDARDS
 The **portstreelint** utility is not a standard UNIX command.

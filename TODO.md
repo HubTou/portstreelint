@@ -5,15 +5,16 @@ Feel free to submit your own ideas!
 * Having a configuration file
   * Limits setting
   * Checks enabling or disabling
-  * Exclusion of ports, maintainers, categories
+  * Selection (or exclusion?) of ports, maintainers, categories
   * Correction of false positives (for example for vulnerability checks)
 
 ## Probable evolutions
+* Improving versions comparison for versions with letters
+* Better Makefiles exploitation by expanding embedded variables when possible locally
+  * Perhaps using Make to do the job when there are embedded variables?
 * Checking distfiles availability
 
 ## Possible evolutions
-* Better Makefiles exploitation by expanding embedded variables when possible locally
-  * Perhaps using Make to do the job when there are embedded variables?
 * Checking the existence of domains in maintainer's email addresses
 * Checking the depends fields (extract/patch/fetch/build/run):
   * Between the Index and the Makefiles
