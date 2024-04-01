@@ -13,6 +13,7 @@ import sys
 import libpnu
 
 from .load_data import load_freebsd_ports_dict, filter_ports, update_with_makefiles
+from .load_config import generate_config, load_config
 from .check_port_path import check_port_path
 from .check_installation_prefix import check_installation_prefix
 from .check_comment import check_comment
@@ -31,16 +32,31 @@ from .show_summary import show_summary
 
 
 # Version string used by the what(1) and ident(1) commands:
-ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.2.1 (March 23, 2024) by Hubert Tournier $"
+ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.3.0 (April 1st, 2024) by Hubert Tournier $"
 
 # Default parameters. Can be overcome by command line options:
 parameters = {
+    "Load config": True,
+    "INI filename": "",
     "Ports dir": "/usr/ports",
+    "CSV filename": "",
     "Show categories": False,
     "Show maintainers": False,
+
     "Checks": {
+        "port-path": True,
+		"installation-prefix": True,
+		"comment": True,
+		"description-file": True,
+		"plist": True,
+		"maintainer": True,
+		"categories": True,
+		"www-site": True,
         "Hostnames": False,
         "URL": False,
+		"Marks": True,
+		"Unchanging ports": True,
+		"Vulnerabilities": True,
     },
     "Limits": {
         "PLIST abuse": 7, # entries
@@ -49,10 +65,14 @@ parameters = {
         "DEPRECATED since": 6 * 30, # days
         "Unchanged since": 3 * 365, # days
     },
-    "Output filename": "",
-    "Categories": [],
-    "Maintainers": [],
-    "Ports": [],
+    "Selections": {
+        "Categories": [],
+        "Maintainers": [],
+        "Ports": [],
+    },
+    "Exclusions": {
+        "Vulnerabilities": [],
+    },
 }
 
 
@@ -60,18 +80,21 @@ parameters = {
 def _display_help():
     """ Display usage and help """
     #pylint: disable=C0301
-    print("usage: portstreelint [--tree|-t DIR] [--show-cat|-C] [--show-mnt|-M]", file=sys.stderr)
+    print("usage: portstreelint [--nocfg|-n] [--gencfg|-g FILE]", file=sys.stderr)
+    print("        [--tree|-t DIR] [--show-cat|-C] [--show-mnt|-M]", file=sys.stderr)
     print("        [--cat|-c LIST] [--mnt|-m LIST] [--port|-p LIST] [--plist NUM]", file=sys.stderr)
     print("        [--broken NUM] [--deprecated NUM] [--forbidden NUM] [--unchanged NUM]", file=sys.stderr)
     print("        [--check-host|-h] [--check-url|-u] [--output|-o FILE]", file=sys.stderr)
     print("        [--debug] [--help|-?] [--info] [--version] [--]", file=sys.stderr)
     print("  ------------------  -------------------------------------------------------", file=sys.stderr)
-    print("  --tree|-t DIR       Ports directory (default=/usr/ports)", file=sys.stderr)
+    print("  --nocfg|-n          Don't use the configuration file", file=sys.stderr)
+    print("  --gencfg|-g FILE    Generate a default configuration file in FILE", file=sys.stderr)
     print("  --show-cat|-C       Show categories with ports count", file=sys.stderr)
     print("  --show-mnt|-M       Show maintainers with ports count", file=sys.stderr)
     print("  --cat|-c LIST       Select only the comma-separated categories in LIST", file=sys.stderr)
     print("  --mnt|-m LIST       Select only the comma-separated maintainers in LIST", file=sys.stderr)
     print("  --port|-p LIST      Select only the comma-separated ports in LIST", file=sys.stderr)
+    print("  --tree|-t DIR       Set ports directory (default=/usr/ports)", file=sys.stderr)
     print("  --plist NUM         Set PLIST_FILES abuse to NUM files", file=sys.stderr)
     print("  --broken NUM        Set BROKEN since to NUM days", file=sys.stderr)
     print("  --deprecated NUM    Set DEPRECATED since to NUM days", file=sys.stderr)
@@ -118,7 +141,7 @@ def _process_command_line():
 
     # option letters followed by : expect an argument
     # same for option strings followed by =
-    character_options = "CMc:hm:o:p:t:u?"
+    character_options = "CMc:g:hm:no:p:t:u?"
     string_options = [
         "broken=",
         "cat=",
@@ -127,9 +150,11 @@ def _process_command_line():
         "debug",
         "deprecated=",
         "forbidden=",
+        "gencfg=",
         "help",
         "info",
         "mnt=",
+        "nocfg",
         "output=",
         "port=",
         "plist=",
@@ -175,7 +200,7 @@ def _process_command_line():
                 sys.exit(1)
 
         elif option in ("--cat", "-c"):
-            parameters["Categories"] = argument.lower().split(",")
+            parameters["Selections"]["Categories"] = argument.lower().split(",")
 
         elif option in ("--check-host", "-h"):
             parameters["Checks"]["Hostnames"] = True
@@ -204,13 +229,22 @@ def _process_command_line():
                 logging.critical("The number of days after the forbidden option must be >= 30")
                 sys.exit(1)
 
+        elif option in ("--gencfg", "-g"):
+            if not os.path.exists(argument):
+                parameters["INI filename"] = argument
+            else:
+                logging.critical("--gencfg|-g argument cannot be an existing filesystem item")
+                sys.exit(1)
+
         elif option in ("--mnt", "-m"):
             maintainers = argument.lower().split(",")
-            parameters["Maintainers"] = [m if '@' in m else f"{m}@freebsd.org" for m in maintainers]
+            parameters["Selections"]["Maintainers"] = [m if '@' in m else f"{m}@freebsd.org" for m in maintainers]
 
+        elif option in ("--nocfg", "-n"):
+            parameters["Load config"] = False
 
         elif option in ("--output", "-o"):
-            parameters["Output filename"] = argument
+            parameters["CSV filename"] = argument
 
         elif option == "--plist":
             try:
@@ -223,7 +257,7 @@ def _process_command_line():
                 sys.exit(1)
 
         elif option in ("--port", "-p"):
-            parameters["Ports"] = argument.split(",")
+            parameters["Selections"]["Ports"] = argument.split(",")
 
         elif option in ("--show-cat", "-C"):
             parameters["Show categories"] = True
@@ -264,10 +298,17 @@ def _process_command_line():
 ####################################################################################################
 def main():
     """ The program's main entry point """
+    #pylint: disable=C0103, W0602
+    global parameters
+    #pylint: enable=C0103, W0602
+
     program_name = os.path.basename(sys.argv[0])
 
     libpnu.initialize_debugging(program_name)
     libpnu.handle_interrupt_signals(libpnu.interrupt_handler_function)
+
+    if parameters["Load config"]:
+        parameters = load_config(parameters)
     _process_environment_variables()
     _ = _process_command_line()
 
@@ -283,59 +324,78 @@ def main():
         logging.critical("The ports tree is missing. Please install and update it as root ('portsnap fetch extract')")
         sys.exit(1)
 
-    if parameters["Show categories"]:
+    if parameters["INI filename"]:
+        # Only generate a configuration file
+        generate_config(parameters)
+    elif parameters["Show categories"]:
         # Only show port categories with count of associated ports
         show_categories(ports)
     elif parameters["Show maintainers"]:
         # Only show port maintainers with count of associated ports
         show_maintainers(ports)
     else:
-        ports = filter_ports(ports, parameters["Categories"], parameters["Maintainers"], parameters["Ports"])
+        ports = filter_ports(
+            ports,
+            parameters["Selections"]["Categories"],
+            parameters["Selections"]["Maintainers"],
+            parameters["Selections"]["Ports"]
+        )
 
         # Check the existence of port Makefile and load its variables
         ports = update_with_makefiles(ports, parameters["Ports dir"])
 
         # Check the existence of port-path
-        check_port_path(ports, parameters["Ports dir"])
+        if parameters["Checks"]["port-path"]:
+            check_port_path(ports, parameters["Ports dir"])
 
         # Check unusual installation-prefix
-        check_installation_prefix(ports)
+        if parameters["Checks"]["installation-prefix"]:
+            check_installation_prefix(ports)
 
         # Cross-check comment identity between Index and Makefile
-        check_comment(ports)
+        if parameters["Checks"]["comment"]:
+            check_comment(ports)
 
         # Check the existence of description-file
-        check_description_file(ports, parameters["Ports dir"])
+        if parameters["Checks"]["description-file"]:
+            check_description_file(ports, parameters["Ports dir"])
 
         # Check the package list
-        check_plist(ports, parameters["Limits"]["PLIST abuse"], parameters["Ports dir"])
+        if parameters["Checks"]["plist"]:
+            check_plist(ports, parameters["Limits"]["PLIST abuse"], parameters["Ports dir"])
 
         # Cross-check maintainer identity between Index and Makefile
-        check_maintainer(ports)
+        if parameters["Checks"]["maintainer"]:
+            check_maintainer(ports)
 
         # Cross-check categories identity between Index and Makefile
         # and belonging to the official list of categories
-        check_categories(ports)
+        if parameters["Checks"]["categories"]:
+            check_categories(ports)
 
         # Check that www-site is not empty, that the hostnames exist,
         # that the URL is accessible, and identity between Index and Makefile
-        check_www_site(ports, parameters["Checks"]["Hostnames"], parameters["Checks"]["URL"])
+        if parameters["Checks"]["www-site"]:
+            check_www_site(ports, parameters["Checks"]["Hostnames"], parameters["Checks"]["URL"])
 
         # Check the existence of marks variables (ie. BROKEN, etc.) in Makefiles
-        check_marks(ports, parameters["Limits"])
+        if parameters["Checks"]["Marks"]:
+            check_marks(ports, parameters["Limits"])
 
         # Check static ports
-        check_unchanging_ports(ports, parameters["Limits"]["Unchanged since"])
+        if parameters["Checks"]["Unchanging ports"]:
+            check_unchanging_ports(ports, parameters["Limits"]["Unchanged since"])
 
         # Check vulnerabilities
-        check_vulnerabilities(ports)
+        if parameters["Checks"]["Vulnerabilities"]:
+            check_vulnerabilities(ports, parameters["Exclusions"]["Vulnerabilities"])
 
         # Print results per maintainer
         show_notifications()
 
         # Output per maintainer results in a CSV file
-        if parameters["Output filename"]:
-            output_notifications(parameters["Output filename"])
+        if parameters["CSV filename"]:
+            output_notifications(parameters["CSV filename"])
 
         # Print summary of findings
         show_summary(parameters["Limits"])

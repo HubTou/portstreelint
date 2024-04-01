@@ -2,19 +2,15 @@
 Feel free to submit your own ideas!
 
 ## Planned changes
-* Having a configuration file
-  * Limits setting
-  * Checks enabling or disabling
-  * Selection (or exclusion?) of ports, maintainers, categories
-  * Correction of false positives (for example for vulnerability checks)
+* Better Makefiles exploitation by expanding embedded variables when possible locally
+  * Using Make to do the job when there are embedded variables
 
 ## Probable evolutions
-* Improving versions comparison for versions with letters
-* Better Makefiles exploitation by expanding embedded variables when possible locally
-  * Perhaps using Make to do the job when there are embedded variables?
 * Checking distfiles availability
+* Improving versions comparison for versions with letters -> pnu-vuxml change needed
 
 ## Possible evolutions
+* Printing the number of notifications and a congratulation message if everything is OK
 * Checking the existence of domains in maintainer's email addresses
 * Checking the depends fields (extract/patch/fetch/build/run):
   * Between the Index and the Makefiles

@@ -1,4 +1,4 @@
-.Dd March 23, 2024
+.Dd April 1st, 2024
 .Dt portstreelint 8
 .Os
 .Sh NAME
@@ -6,12 +6,14 @@
 .Nd FreeBSD ports tree lint
 .Sh SYNOPSIS
 .Nm
-.Op Fl \-tree|\-t Ar DIR
+.Op Fl \-nocfg|\-n
+.Op Fl \-gencfg|\-g Ar FILE
 .Op Fl \-show\-cat|\-C
 .Op Fl \-show\-mnt|\-M
 .Op Fl \-cat|\-c Ar LIST
 .Op Fl \-mnt|\-m Ar LIST
 .Op Fl \-port|\-p Ar LIST
+.Op Fl \-tree|\-t Ar DIR
 .Op Fl \-plist Ar NUM
 .Op Fl \-broken Ar NUM
 .Op Fl \-deprecated Ar NUM
@@ -141,6 +143,11 @@ and
 .Op Fl \-unchanged
 options, followed by a number of files for the first
 one and a number of days for the others.
+And you can select a port tree in a location other than
+.Pa /usr/ports
+with the
+.Op Fl \-tree|\-t
+option.
 .Pp
 Finally, there's a
 .Op Fl \-output|\-o
@@ -148,9 +155,22 @@ option to generate a CSV delimited file with the per\-maintainer
 findings to a specified filename. This allows for automated processing
 of the results, such as, for example, sending warning emails, storing
 results and displaying only diffs since previous run...
+.Pp
+For convenience, you can put your favourite options in a
+configuration file, which will be read before processing the
+environment and the command line, unless you use the
+.Op Fl \-nocfg|\-n
+option. You can generate a default configuration file with the
+.Op Fl \-gencfg|\-g
+option followed by a filename. This file also offers full control
+over the checks to perform, and a way to discard false\-positive
+vulnerabilities.
 .Ss OPTIONS
-.Op Fl \-tree|\-t Ar DIR
-Ports directory (default=/usr/ports)
+.Op Fl \-nocfg|\-n
+Don't use the configuration file
+.Pp
+.Op Fl \-gencfg|\-g Ar FILE
+Generate a default configuration file in FILE
 .Pp
 .Op Fl \-show\-cat|\-C
 Show categories with ports count
@@ -166,6 +186,9 @@ Select only the comma\-separated maintainers in LIST
 .Pp
 .Op Fl \-port|\-p Ar LIST
 Select only the comma\-separated ports in LIST
+.Pp
+.Op Fl \-tree|\-t Ar DIR
+Ports directory (default=/usr/ports)
 .Pp
 .Op Fl \-plist Ar NUM
 Set PLIST_FILES abuse to NUM files
@@ -234,13 +257,22 @@ or, if you have installed git, clone the latest repository with "git clone https
 .El
 .Pp
 .Pa /usr/ports/INDEX\-xx
-where xx is the major version of FreeBSD that you are using
+: where xx is the major version of FreeBSD that you are using
 (as I write this xx=14).
 .Bl -bullet
 .It
 as root, get the last version with "cd /usr/ports ; make fetchindex"
 .It
 or rebuild it from your port tree with "cd /usr/ports ; make index"
+.El
+.Pp
+.Pa ${HOME}/.ptlint
+: an INI\-style configuration file.
+.Bl -bullet
+.It
+Generate a default one with the
+.Op Fl \-gencfg|\-g
+option and tweak it to your taste.
 .El
 .Sh EXIT STATUS
 .Ex -std portstreelint

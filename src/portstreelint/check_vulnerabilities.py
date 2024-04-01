@@ -55,7 +55,7 @@ def _debug_versions(port):
 
 
 ####################################################################################################
-def check_vulnerabilities(ports):
+def check_vulnerabilities(ports, excluded_vulnerabilities):
     """ Checks if the port has vulnerabilities reported in VuXML """
     vulns = vuxml.load_vuxml()
     logging.info("Loaded %d vulnerabilities from the FreeBSD VuXML files", len(vulns))
@@ -126,6 +126,11 @@ def check_vulnerabilities(ports):
             logging.warning('Encountered "%s" while searching vulnerabilities for port %s. Skipping vulnerability check', error, name)
             counters["Skipped vulnerability checks"] += 1
             continue
+
+        for vid in excluded_vulnerabilities:
+            if vid in vids:
+                vids.remove(vid)
+                logging.debug("Discarded false-positive VuXML vulnerability '%s' for port %s", vid, name)
 
         for vid in vids:
             logging.warning("Found VuXML vulnerability '%s' for port %s", vid, name)

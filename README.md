@@ -19,12 +19,14 @@ portstreelint - FreeBSD ports tree lint
 
 ## SYNOPSIS
 **portstreelint**
-\[--tree|-t DIR\]
+\[--nocfg|-n\]
+\[--gencfg|-g FILE\]
 \[--show-cat|-C\]
 \[--show-mnt|-M\]
 \[--cat|-c LIST\]
 \[--mnt|-m LIST\]
 \[--port|-p LIST\]
+\[--tree|-t DIR\]
 \[--plist NUM\]
 \[--broken NUM\]
 \[--deprecated NUM\]
@@ -101,7 +103,9 @@ It's possible to change the default values for PLIST_FILES abuse,
 BROKEN_since, DEPRECATED_since, FORBIDDEN_since and Unchanged_since
 with the *--plist*, *--broken*, *--deprecated*, *--forbidden* and
 *--unchanged* options, followed by a number of files for the first
-one and a number of days for the others.
+one and a number of days for the others. And you can select a port
+tree in a location other than */usr/ports* with the *--tree|-t*
+option.
 
 Finally, there's a *--output|-o* option to generate a CSV delimited
 file with the per-maintainer findings to a specified filename. This
@@ -109,15 +113,25 @@ allows for automated processing of the results, such as, for example,
 sending warning emails, storing results and displaying only diffs
 since previous run...
 
+For convenience, you can put your favourite options in a
+configuration file, which will be read before processing the
+environment and the command line, unless you use the *--nocfg|-n*
+option. You can generate a default configuration file with the
+*--gencfg|-g* option followed by a filename. This file also offers
+full control over the checks to perform, and a way to discard
+false-positive vulnerabilities.
+
 ### OPTIONS
 Options | Use
 ------- | ---
---tree\|-t DIR|Ports directory (default=/usr/ports)
+--nocfg\|-n|Don't use the configuration file
+--gencfg\|-g FILE|Generate a default configuration file in FILE
 --show-cat\|-C|Show categories with ports count
 --show-mnt\|-M|Show maintainers with ports count
 --cat\|-c LIST|Select only the comma-separated categories in LIST
 --mnt\|-m LIST|Select only the comma-separated maintainers in LIST
 --port\|-p LIST|Select only the comma-separated ports in LIST
+--tree\|-t DIR|Set ports directory (default=/usr/ports)
 --plist NUM|Set PLIST_FILES abuse to NUM files
 --broken NUM|Set BROKEN since to NUM days
 --deprecated NUM|Set DEPRECATED since to NUM days
@@ -139,15 +153,19 @@ If the system's *PORTSDIR* environment variable is set, it'll be used instead of
 default "/usr/ports". But the *--tree|-t DIR* option will still override it.
 
 ## FILES
-The whole port tree under /usr/ports, or the location indicated by the *PORTSDIR*
+The whole port tree under */usr/ports*, or the location indicated by the *PORTSDIR*
 environment variable, or the *--tree|-t* argument:
 - as root, if you have installed portsnap, update to the last version with "portsnap fetch update"
 - or, if you have installed git, clone the latest repository with "git clone https://git.FreeBSD.org/ports.git /usr/ports"
 
 [/usr/ports/INDEX-xx](https://wiki.freebsd.org/Ports/INDEX)
-where xx is the major version of FreeBSD that you are using (as I write this xx=14).
+: where xx is the major version of FreeBSD that you are using (as I write this xx=14).
 - as root, get the last version with "cd /usr/ports ; make fetchindex"
 - or rebuild it from your port tree with "cd /usr/ports ; make index"
+
+${HOME}/.ptlint
+: an [INI-style](https://docs.python.org/3/library/configparser.html#supported-ini-file-structure) configuration file.
+- Generate a default one with the *--gencfg|-g* option and tweak it to your taste.
 
 ## EXIT STATUS
 The **portstreelint** utility exits 0 on success, and >0 if an error occurs.
