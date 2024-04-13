@@ -32,7 +32,7 @@ from .show_notifications import show_notifications, output_notifications
 from .show_summary import show_summary
 
 # Version string used by the what(1) and ident(1) commands:
-ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.4.0 (April 13, 2024) by Hubert Tournier $"
+ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.4.1 (April 13, 2024) by Hubert Tournier $"
 
 # Default parameters. Can be overcome by command line options:
 parameters = {
@@ -304,7 +304,6 @@ def main():
     libpnu.initialize_debugging(program_name)
     libpnu.handle_interrupt_signals(libpnu.interrupt_handler_function)
 
-    print(sys.argv[1:])
     if not "--nocfg" in sys.argv[1:]:
         parameters = load_config(parameters)
     _process_environment_variables()
