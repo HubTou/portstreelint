@@ -19,7 +19,7 @@ portstreelint - FreeBSD ports tree lint
 
 ## SYNOPSIS
 **portstreelint**
-\[--nocfg|-n\]
+\[--nocfg\]
 \[--gencfg|-g FILE\]
 \[--show-cat|-C\]
 \[--show-mnt|-M\]
@@ -98,6 +98,10 @@ The checks list includes:
 * Ports unchanged for a long time (info)
 * Makefile:PORTVERSION and Makefile:DISTVERSION used simultaneously
 * VuXML vulnerabilities for the current port versions (warning)
+* Missing Makefile:LICENSE
+* Unofficial licenses (warning)
+* Unnecessary Makefile:LICENSE_COMB=single (warning)
+* Unnecessary Makefile:LICENSE_COMB=multi (warning)
 
 It's possible to change the default values for PLIST_FILES abuse,
 BROKEN_since, DEPRECATED_since, FORBIDDEN_since and Unchanged_since
@@ -115,16 +119,17 @@ since previous run...
 
 For convenience, you can put your favourite options in a
 configuration file, which will be read before processing the
-environment and the command line, unless you use the *--nocfg|-n*
+environment and the command line, unless you use the *--nocfg*
 option. You can generate a default configuration file with the
 *--gencfg|-g* option followed by a filename. This file also offers
 full control over the checks to perform, and a way to discard
-false-positive vulnerabilities.
+false-positive vulnerabilities and unwanted licenses report
+messages.
 
 ### OPTIONS
 Options | Use
 ------- | ---
---nocfg\|-n|Don't use the configuration file
+--nocfg|Don't use the configuration file
 --gencfg\|-g FILE|Generate a default configuration file in FILE
 --show-cat\|-C|Show categories with ports count
 --show-mnt\|-M|Show maintainers with ports count
@@ -230,8 +235,8 @@ The IGNORE mark check is not reliable because this tool doesn't parse
 the ports' Makefiles, but just loads their variables without regard to
 the conditional tests that may surround them.
 
-The nonexistent plist is not very helpful because there are unaccounted
-autoplist options for some languages (Python)...
+The nonexistent plist check is not very helpful because there are still
+undocumented cases where the list is auto generated.
 
 The ports using exotic versioning schemes will be skipped from the
 vulnerability check because the library we use for version comparisons

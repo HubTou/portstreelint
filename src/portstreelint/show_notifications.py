@@ -25,7 +25,6 @@ def show_notifications():
                 print(f"      {line}")
         print()
 
-
 ####################################################################################################
 def output_notifications(filename):
     """ Output notifications in a CSV file """

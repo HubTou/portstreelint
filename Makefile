@@ -2,12 +2,12 @@ NAME=portstreelint
 SOURCES=src/${NAME}/__init__.py src/${NAME}/main.py src/${NAME}/library.py \
         src/${NAME}/load_config.py src/${NAME}/load_data.py src/${NAME}/check_categories.py \
         src/${NAME}/check_comment.py src/${NAME}/check_description_file.py \
-        src/${NAME}/check_installation_prefix.py src/${NAME}/check_maintainer.py \
-        src/${NAME}/check_marks.py src/${NAME}/check_plist.py src/${NAME}/check_port_path.py \
-        src/${NAME}/check_unchanging_ports.py src/${NAME}/check_vulnerabilities.py \
-        src/${NAME}/check_www_site.py src/${NAME}/show_categories.py \
-        src/${NAME}/show_maintainers.py src/${NAME}/show_notifications.py \
-        src/${NAME}/show_summary.py
+        src/${NAME}/check_installation_prefix.py src/${NAME}/check_licenses.py \
+        src/${NAME}/check_maintainer.py src/${NAME}/check_marks.py src/${NAME}/check_plist.py \
+        src/${NAME}/check_port_path.py src/${NAME}/check_unchanging_ports.py \
+        src/${NAME}/check_vulnerabilities.py src/${NAME}/check_www_site.py \
+        src/${NAME}/show_categories.py src/${NAME}/show_maintainers.py \
+        src/${NAME}/show_notifications.py src/${NAME}/show_summary.py
 
 # Default action is to show this help message:
 .help:

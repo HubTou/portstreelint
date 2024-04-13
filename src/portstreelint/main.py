@@ -12,31 +12,30 @@ import sys
 
 import libpnu
 
-from .load_data import load_freebsd_ports_dict, filter_ports, update_with_makefiles
 from .load_config import generate_config, load_config
-from .check_port_path import check_port_path
-from .check_installation_prefix import check_installation_prefix
+from .load_data import load_freebsd_ports_dict, filter_ports, update_with_makefiles
+from .check_categories import check_categories
 from .check_comment import check_comment
 from .check_description_file import check_description_file
-from .check_plist import check_plist
+from .check_installation_prefix import check_installation_prefix
+from .check_licenses import check_licenses
 from .check_maintainer import check_maintainer
-from .check_categories import check_categories
-from .check_www_site import check_www_site
 from .check_marks import check_marks
+from .check_plist import check_plist
+from .check_port_path import check_port_path
 from .check_unchanging_ports import check_unchanging_ports
 from .check_vulnerabilities import check_vulnerabilities
+from .check_www_site import check_www_site
 from .show_categories import show_categories
 from .show_maintainers import show_maintainers
 from .show_notifications import show_notifications, output_notifications
 from .show_summary import show_summary
 
-
 # Version string used by the what(1) and ident(1) commands:
-ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.3.0 (April 1st, 2024) by Hubert Tournier $"
+ID = "@(#) $Id: portstreelint - FreeBSD ports tree lint v1.4.0 (April 13, 2024) by Hubert Tournier $"
 
 # Default parameters. Can be overcome by command line options:
 parameters = {
-    "Load config": True,
     "INI filename": "",
     "Ports dir": "/usr/ports",
     "CSV filename": "",
@@ -44,19 +43,20 @@ parameters = {
     "Show maintainers": False,
 
     "Checks": {
-        "port-path": True,
-		"installation-prefix": True,
+		"categories": True,
 		"comment": True,
 		"description-file": True,
-		"plist": True,
-		"maintainer": True,
-		"categories": True,
-		"www-site": True,
         "Hostnames": False,
-        "URL": False,
+		"installation-prefix": True,
+		"Licenses": True,
+		"maintainer": True,
 		"Marks": True,
+		"plist": True,
+        "port-path": True,
 		"Unchanging ports": True,
+        "URL": False,
 		"Vulnerabilities": True,
+		"www-site": True,
     },
     "Limits": {
         "PLIST abuse": 7, # entries
@@ -72,22 +72,22 @@ parameters = {
     },
     "Exclusions": {
         "Vulnerabilities": [],
+        "Licenses": [],
     },
 }
-
 
 ####################################################################################################
 def _display_help():
     """ Display usage and help """
     #pylint: disable=C0301
-    print("usage: portstreelint [--nocfg|-n] [--gencfg|-g FILE]", file=sys.stderr)
+    print("usage: portstreelint [--nocfg] [--gencfg|-g FILE]", file=sys.stderr)
     print("        [--tree|-t DIR] [--show-cat|-C] [--show-mnt|-M]", file=sys.stderr)
     print("        [--cat|-c LIST] [--mnt|-m LIST] [--port|-p LIST] [--plist NUM]", file=sys.stderr)
     print("        [--broken NUM] [--deprecated NUM] [--forbidden NUM] [--unchanged NUM]", file=sys.stderr)
     print("        [--check-host|-h] [--check-url|-u] [--output|-o FILE]", file=sys.stderr)
     print("        [--debug] [--help|-?] [--info] [--version] [--]", file=sys.stderr)
     print("  ------------------  -------------------------------------------------------", file=sys.stderr)
-    print("  --nocfg|-n          Don't use the configuration file", file=sys.stderr)
+    print("  --nocfg             Don't use the configuration file", file=sys.stderr)
     print("  --gencfg|-g FILE    Generate a default configuration file in FILE", file=sys.stderr)
     print("  --show-cat|-C       Show categories with ports count", file=sys.stderr)
     print("  --show-mnt|-M       Show maintainers with ports count", file=sys.stderr)
@@ -111,7 +111,6 @@ def _display_help():
     print(file=sys.stderr)
     #pylint: enable=C0301
 
-
 ####################################################################################################
 def _process_environment_variables():
     """ Process environment variables """
@@ -131,7 +130,6 @@ def _process_environment_variables():
     logging.debug("_process_environment_variables(): parameters:")
     logging.debug(parameters)
 
-
 ####################################################################################################
 def _process_command_line():
     """ Process command line options """
@@ -141,7 +139,7 @@ def _process_command_line():
 
     # option letters followed by : expect an argument
     # same for option strings followed by =
-    character_options = "CMc:g:hm:no:p:t:u?"
+    character_options = "CMc:g:hm:o:p:t:u?"
     string_options = [
         "broken=",
         "cat=",
@@ -240,8 +238,8 @@ def _process_command_line():
             maintainers = argument.lower().split(",")
             parameters["Selections"]["Maintainers"] = [m if '@' in m else f"{m}@freebsd.org" for m in maintainers]
 
-        elif option in ("--nocfg", "-n"):
-            parameters["Load config"] = False
+        elif option == "--nocfg":
+            pass # need to be handled BEFORE this function
 
         elif option in ("--output", "-o"):
             parameters["CSV filename"] = argument
@@ -294,7 +292,6 @@ def _process_command_line():
 
     return remaining_arguments
 
-
 ####################################################################################################
 def main():
     """ The program's main entry point """
@@ -307,7 +304,8 @@ def main():
     libpnu.initialize_debugging(program_name)
     libpnu.handle_interrupt_signals(libpnu.interrupt_handler_function)
 
-    if parameters["Load config"]:
+    print(sys.argv[1:])
+    if not "--nocfg" in sys.argv[1:]:
         parameters = load_config(parameters)
     _process_environment_variables()
     _ = _process_command_line()
@@ -390,6 +388,10 @@ def main():
         if parameters["Checks"]["Vulnerabilities"]:
             check_vulnerabilities(ports, parameters["Exclusions"]["Vulnerabilities"])
 
+        # Check licenses
+        if parameters["Checks"]["Licenses"]:
+            check_licenses(ports, parameters["Exclusions"]["Licenses"])
+
         # Print results per maintainer
         show_notifications()
 
@@ -401,7 +403,6 @@ def main():
         show_summary(parameters["Limits"])
 
     sys.exit(0)
-
 
 if __name__ == "__main__":
     main()

@@ -41,6 +41,10 @@ counters = {
     "Both PORTVERSION and DISTVERSION": 0,
     "Vulnerable port version": 0,
     "Skipped vulnerability checks": 0,
+    "Missing LICENSE": 0,
+    "Unofficial licenses": 0,
+    "Unnecessary LICENSE_COMB=single": 0,
+    "Unnecessary LICENSE_COMB=multi": 0,
 }
 
 # Global dictionary of notifications to port maintainers:

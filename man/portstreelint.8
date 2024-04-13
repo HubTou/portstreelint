@@ -1,4 +1,4 @@
-.Dd April 1st, 2024
+.Dd April 13, 2024
 .Dt portstreelint 8
 .Os
 .Sh NAME
@@ -6,7 +6,7 @@
 .Nd FreeBSD ports tree lint
 .Sh SYNOPSIS
 .Nm
-.Op Fl \-nocfg|\-n
+.Op Fl \-nocfg
 .Op Fl \-gencfg|\-g Ar FILE
 .Op Fl \-show\-cat|\-C
 .Op Fl \-show\-mnt|\-M
@@ -130,6 +130,14 @@ Ports unchanged for a long time (info)
 Makefile:PORTVERSION and Makefile:DISTVERSION used simultaneously
 .It
 VuXML vulnerabilities for the current port versions (warning)
+.It
+Missing Makefile:LICENSE
+.It
+Unofficial licenses (warning)
+.It
+Unnecessary Makefile:LICENSE_COMB=single (warning)
+.It
+Unnecessary Makefile:LICENSE_COMB=multi (warning)
 .El
 .Pp
 It's possible to change the default values for PLIST_FILES abuse,
@@ -159,14 +167,14 @@ results and displaying only diffs since previous run...
 For convenience, you can put your favourite options in a
 configuration file, which will be read before processing the
 environment and the command line, unless you use the
-.Op Fl \-nocfg|\-n
+.Op Fl \-nocfg
 option. You can generate a default configuration file with the
 .Op Fl \-gencfg|\-g
 option followed by a filename. This file also offers full control
 over the checks to perform, and a way to discard false\-positive
-vulnerabilities.
+vulnerabilities and unwanted licenses report messages.
 .Ss OPTIONS
-.Op Fl \-nocfg|\-n
+.Op Fl \-nocfg
 Don't use the configuration file
 .Pp
 .Op Fl \-gencfg|\-g Ar FILE
@@ -337,8 +345,8 @@ The IGNORE mark check is not reliable because this tool doesn't parse
 the ports' Makefiles, but just loads their variables without regard to
 the conditional tests that may surround them.
 .Pp
-The nonexistent plist is not very helpful because there are
-unaccounted autoplist options for some languages (Python)...
+The nonexistent plist check is not very helpful because there are still
+undocumented cases where the list is auto generated.
 .Pp
 The ports using exotic versioning schemes will be skipped from the
 vulnerability check because the library we use for version comparisons

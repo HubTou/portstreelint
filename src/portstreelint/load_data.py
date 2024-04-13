@@ -64,7 +64,6 @@ def load_freebsd_ports_dict(ports_dir):
     logging.info("Loaded %d ports from the FreeBSD Ports INDEX file", len(ports))
     return ports
 
-
 ####################################################################################################
 def filter_ports(ports, selected_categories, selected_maintainers, selected_ports):
     """ Filters the list of ports to the specified categories AND maintainers"""
@@ -92,7 +91,6 @@ def filter_ports(ports, selected_categories, selected_maintainers, selected_port
     counters["Selected ports"] = len(ports)
     logging.info("Selected %d ports", len(ports))
     return ports
-
 
 ####################################################################################################
 def update_with_makefiles(ports, ports_dir):

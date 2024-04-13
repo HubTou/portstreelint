@@ -13,7 +13,6 @@ def _conditional_print(counter, message):
         value = counters[counter]
         print(f"  {value} port{'' if value == 1 else 's'} {message}")
 
-
 ####################################################################################################
 def show_summary(limits):
     """ Pretty prints a summary of findings """
@@ -50,3 +49,7 @@ def show_summary(limits):
     _conditional_print("Unchanged for a long time", f"with a last modification older than {limits['Unchanged since']} days (info)")
     _conditional_print("Both PORTVERSION and DISTVERSION", "with both PORTVERSION and DISTVERSION")
     _conditional_print("Vulnerable port version", "with a vulnerable version (warning)")
+    _conditional_print("Missing LICENSE", "without defined LICENSE")
+    _conditional_print("Unofficial licenses", "referring to unofficial licenses (warning)")
+    _conditional_print("Unnecessary LICENSE_COMB=single", "with unnecessary LICENSE_COMB=single (warning)")
+    _conditional_print("Unnecessary LICENSE_COMB=multi", "with unnecessary LICENSE_COMB=multi (warning)")

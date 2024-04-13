@@ -8,6 +8,7 @@ Feel free to submit your own ideas!
 ## Probable evolutions
 * Checking distfiles availability
 * Improving versions comparison for versions with letters -> pnu-vuxml change needed
+* More exclusions loaded from the config file
 
 ## Possible evolutions
 * Printing the number of notifications and a congratulation message if everything is OK
