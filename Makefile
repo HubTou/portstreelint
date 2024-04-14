@@ -56,6 +56,7 @@ man/${NAME}.8.gz: man/${NAME}.8
 
 package: man/${NAME}.8.gz
 	python -m build
+	mv dist/pnu_portstreelint-*.tar.gz `echo dist/pnu_portstreelint-*.tar.gz|sed "s:_:-:"`
 
 upload-test:
 	python -m twine upload --repository testpypi dist/*
